@@ -44,7 +44,7 @@ phases:
       - VERSION=${NEW_TAG}
       - echo "Uploading artifacts"
       - |
-        for env in ${ENVS}; do
+        for env in ${ENVIRONMENTS}; do
           make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
           tar -C src/public/${env} -cf src/public/${env}.tar.bz2 .
           aws s3 cp --no-progress --acl public-read src/public/${env}.tar.bz2 s3://${S3_ARCHIVE_BUCKET}/${COMMIT_HASH}/hugo-${env}.tar.bz2
