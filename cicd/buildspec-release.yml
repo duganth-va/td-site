@@ -5,14 +5,9 @@ version: 0.2
 env:
   variables:
     ENVIRONMENTS: 'dev staging production'
-    # Bucket for archiving deployments
-    #S3_ARCHIVE_BUCKET: 'td-site-archive'
-    # Setting REPO
-    #REPO: 'duganth-va/td-site'
-    # Running the container as root.
+    S3_ARCHIVE_BUCKET: 'td-site-archive'
   parameter-store:
     GITHUB_TOKEN: '/github_token'
-    # This webhook currently targets DSVA workspace #lighthous-deploys channel
 phases:
   install:
     commands:

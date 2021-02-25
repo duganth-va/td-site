@@ -10,14 +10,6 @@ phases:
     commands:
       # using a time variable to output at the end to aid where builds may take along time.
       - time="Start - $(date +%r)"
-      # Log all environment varbiables to cloudwatch in case we need to troubleshoot. AWS is nice enough to hide any secrets from parameter-store.
-      # Make a url compliant name for S3
-      - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
-      # Short Ref to commit hash
-      - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
-      - git lfs pull
-      # Resolve PR_NUM
-      #- PR_NUM=$(prnum.sh ${REPO} ${BRANCH})
   build:
     commands:
       - phase=test
