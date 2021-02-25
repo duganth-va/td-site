@@ -21,13 +21,14 @@ phases:
       - gh config set git_protocol ssh
       # Short Ref to commit hash
       - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
+      - printenv
   build:
     commands:
       - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r .state)
       - |
         while [[ ${ci_status} == "pending" ]]; do
           echo "ci still running -- sleep"
-          ci_status=$(gh api /repos/duganth-va/td-site/commits/${commit_hash}/status | jq -r .state)
+          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r .state)
           echo "commit status: ${ci_status}"
           sleep 10
         done
