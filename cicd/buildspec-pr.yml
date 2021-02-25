@@ -7,7 +7,7 @@ env:
     S3_REVIEW_BUCKET: 'td-site-preview'
   parameter-store:
     # This webhook currently targets DSVA workspace #lighthous-deploys channel
-    #
+    GITHUB_TOKEN: '/github_token'
 phases:
   install:
     commands:
@@ -15,10 +15,30 @@ phases:
       # Therefore we use our own Alpine based image. In order to activate the Docker Daemon these lines are needed.
       - /usr/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+  pre_build:
+    commands:
+      - gh config set prompt disabled
+      - gh config set git_protocol ssh
+      # Short Ref to commit hash
+      - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
+      - printenv
   build:
     commands:
       - BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
       - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
+      - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r .state)
+      - |
+        while [[ ${ci_status} == "pending" ]]; do
+          echo "ci still running -- sleep"
+          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r .state)
+          echo "commit status: ${ci_status}"
+          sleep 10
+        done
+      - |
+        if [[ ${ci_status} != "success" ]]; then
+          echo "CI failed release aborted. CI Status was ${ci_status}"
+          exit 1
+        fi
       - |
         links=""
         for env in ${ENVIRONMENTS}; do
