@@ -1,0 +1,28 @@
+#
+######################################################################
+version: 0.2
+env:
+  variables:
+    ENVIRONMENTS: 'dev staging production'
+    S3_REVIEW_BUCKET: 'td-site-preview'
+  parameter-store:
+    # This webhook currently targets DSVA workspace #lighthous-deploys channel
+    #
+phases:
+  install:
+    commands:
+      # There is considerable slow down in the provisioning phase when using Amazon provided images.
+      # Therefore we use our own Alpine based image. In order to activate the Docker Daemon these lines are needed.
+      - /usr/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+  build:
+    commands:
+      - BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
+      - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
+      - |
+        links=""
+        for env in ${ENVIRONMENTS}; do
+          make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
+          links="${links} - [${env}](https://s3-us-gov-west-1.amazonaws.com/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}/index.html) <br>"
+          aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/
+        done
