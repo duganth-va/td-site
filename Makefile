@@ -34,3 +34,12 @@ cmd:
 		-v $(PWD)/src/:/src \
 		klakegg/hugo:debian $(RUN)
 
+.PHONY: new
+new:
+	@docker run \
+		--name hugo.build \
+		--env  HUGO_DESTINATION=public/$(DESTINATION) \
+	        --env  HUGO_ENV=$(ENVIRONMENT) \
+		--rm \
+		-v $(PWD)/src/:/src \
+		klakegg/hugo:debian new $(POST) 
