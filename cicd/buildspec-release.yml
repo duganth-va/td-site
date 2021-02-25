@@ -1,0 +1,59 @@
+# Pull request merged.
+# Create archives upload to s3 and upload to gh
+#
+version: 0.2
+env:
+  variables:
+    ENVIRONMENTS: 'dev staging production'
+    # Bucket for archiving deployments
+    #S3_ARCHIVE_BUCKET: 'td-site-archive'
+    # Setting REPO
+    #REPO: 'duganth-va/td-site'
+    # Running the container as root.
+ parameter-store:
+    GITHUB_TOKEN: '/github_token'
+    # This webhook currently targets DSVA workspace #lighthous-deploys channel
+phases:
+  install:
+    commands:
+      # There is considerable slow down in the provisioning phase when using Amazon provided images.
+      # Therefore we use our own Alpine based image. In order to activate the Docker Daemon these lines are needed.
+      - /usr/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+  pre_build:
+    commands:
+      - gh config set prompt disabled
+      - gh config set git_protocol ssh
+      # Short Ref to commit hash
+      - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
+  build:
+    commands:
+      - ci_status=$(gh api /repos/duganth-va/developer-portal/commits/${COMMIT_HASH}/status | jq -r .state)
+      - |
+        while [[ ${ci_status} == "pending" ]]; do
+          echo "ci still running -- sleep"
+          ci_status=$(gh api /repos/department-of-veterans-affairs/developer-portal/commits/${commit_hash}/status | jq -r .state)
+          echo "commit status: ${ci_status}"
+          sleep 10
+        done
+      - |
+        if [[ ${ci_status} != "success" ]]; then
+          echo "CI failed release aborted. CI Status was ${ci_status}"
+          exit 1
+        fi
+      - OLD_TAG=$(git tag --sort=-creatordate | head -1)
+      - echo "Found ${OLD_TAG} - incrementing..."
+      - NEW_TAG=$(increment.sh ${OLD_TAG})
+      - echo "Creating ${NEW_TAG} release"
+      - gh release create ${NEW_TAG}
+      - VERSION=${NEW_TAG}
+      - echo "Uploading artifacts"
+      - |
+        for env in ${ENVS}; do
+          make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
+          tar -C src/public/${env} -cf src/public/${env}.tar.bz2 .
+          aws s3 cp --no-progress --acl public-read src/public/${env}.tar.bz2 s3://${S3_ARCHIVE_BUCKET}/${COMMIT_HASH}/hugo-${env}.tar.bz2
+          mv "src/public/hugo-${env}.tar.bz2" "src/public/hugo-${env}-${VERSION}.tar.bz2"
+          gh release upload ${NEW_TAG} "src/public/hugo-${env}-${VERSION}.tar.bz2#${NEW_TAG}_${env}.tar.bz2"
+          echo "${env} artifact uploaded"
+        done
