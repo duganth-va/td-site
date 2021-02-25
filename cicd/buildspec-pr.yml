@@ -2,6 +2,7 @@
 ######################################################################
 version: 0.2
 env:
+  shell: bash
   variables:
     ENVIRONMENTS: 'dev staging production'
     S3_REVIEW_BUCKET: 'td-site-preview'
