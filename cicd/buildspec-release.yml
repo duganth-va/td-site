@@ -48,7 +48,7 @@ phases:
           make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
           tar -C src/public/${env} -cf src/public/${env}.tar.bz2 .
           aws s3 cp --no-progress --acl public-read src/public/${env}.tar.bz2 s3://${S3_ARCHIVE_BUCKET}/${COMMIT_HASH}/hugo-${env}.tar.bz2
-          mv "src/public/hugo-${env}.tar.bz2" "src/public/hugo-${env}-${VERSION}.tar.bz2"
+          mv "src/public/${env}.tar.bz2" "src/public/hugo-${env}-${VERSION}.tar.bz2"
           gh release upload ${NEW_TAG} "src/public/hugo-${env}-${VERSION}.tar.bz2#${NEW_TAG}_${env}.tar.bz2"
           echo "${env} artifact uploaded"
         done
