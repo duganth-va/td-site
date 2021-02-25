@@ -23,7 +23,7 @@ phases:
       - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
   build:
     commands:
-      - ci_status=$(gh api /repos/duganth-va/developer-portal/commits/${COMMIT_HASH}/status | jq -r .state)
+      - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r .state)
       - |
         while [[ ${ci_status} == "pending" ]]; do
           echo "ci still running -- sleep"
