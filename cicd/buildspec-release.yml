@@ -10,7 +10,7 @@ env:
     # Setting REPO
     #REPO: 'duganth-va/td-site'
     # Running the container as root.
- parameter-store:
+  parameter-store:
     GITHUB_TOKEN: '/github_token'
     # This webhook currently targets DSVA workspace #lighthous-deploys channel
 phases:
