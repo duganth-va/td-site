@@ -28,7 +28,7 @@ phases:
       - BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
       - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
       - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context|test("^.*td-test-pr.*$")).state')
-      - gh_status.sh -r duganth-va/td-site -x td-test-pr -c ${COMMIT_HASH}
+      - gh-status.sh -r duganth-va/td-site -x td-test-pr -c ${COMMIT_HASH}
       - |
         for env in ${ENVIRONMENTS}; do
           make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
