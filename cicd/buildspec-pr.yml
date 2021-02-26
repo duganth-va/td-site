@@ -27,11 +27,11 @@ phases:
     commands:
       - BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
       - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
-      - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context|test("^.*td-site-ci.*$")).state')
+      - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context|test("^.*td-test-pr.*$")).state')
       - |
         while [[ ${ci_status} == "pending" ]]; do
           echo "ci still running -- sleep"
-          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context|test("^.*td-site-ci.*$")).state')
+          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context|test("^.*td-test-pr.*$")).state')
           echo "commit status: ${ci_status}"
           sleep 10
         done
