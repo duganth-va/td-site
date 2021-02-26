@@ -31,7 +31,7 @@ phases:
       - |
         while [[ ${ci_status} == "pending" ]]; do
           echo "ci still running -- sleep"
-          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context|test("^.*td-test-pr.*$")).state')
+          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context != "^.*td-test-pr.*$").state')
           echo "commit status: ${ci_status}"
           sleep 10
         done
@@ -41,7 +41,6 @@ phases:
           exit 1
         fi
       - |
-        links=""
         for env in ${ENVIRONMENTS}; do
           make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
           links="${links} - [${env}](https://s3-us-gov-west-1.amazonaws.com/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}/index.html) <br>"
