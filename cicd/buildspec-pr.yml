@@ -28,18 +28,7 @@ phases:
       - BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
       - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
       - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context|test("^.*td-test-pr.*$")).state')
-      - |
-        while [[ ${ci_status} == "pending" ]]; do
-          echo "ci still running -- sleep"
-          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r '.statuses[] | select(.context != "^.*td-test-pr.*$").state')
-          echo "commit status: ${ci_status}"
-          sleep 10
-        done
-      - |
-        if [[ ${ci_status} != "success" ]]; then
-          echo "CI failed release aborted. CI Status was ${ci_status}"
-          exit 1
-        fi
+      - gh_status.sh -r duganth-va/td-site -x td-test-pr -c ${COMMIT_HASH}
       - |
         for env in ${ENVIRONMENTS}; do
           make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
