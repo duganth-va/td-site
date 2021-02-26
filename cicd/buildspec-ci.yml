@@ -7,4 +7,5 @@ phases:
   build:
     commands:
       - phase=test
+      - sleep 60s
       - echo testing
