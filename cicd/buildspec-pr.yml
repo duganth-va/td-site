@@ -36,10 +36,10 @@ phases:
       - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
       # Short Ref to commit hash
       - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
-      # PR VERIFY
-      - pr-verify.sh -r ${REPO}  -b ${BRANCH}
       # Log all environment varbiables to cloudwatch in case we need to troubleshoot. AWS is nice enough to hide any secrets from parameter-store.
       - printenv
+      # PR VERIFY
+      - pr-verify.sh -r ${REPO}  -b ${BRANCH} -o duganth-va
   build:
     commands:
       # Using a time variable to output at the end to aid where builds may take along time.
