@@ -7,7 +7,7 @@ env:
     REPO: "td-site"
     ENVIRONMENTS: 'dev staging production'
     S3_REVIEW_BUCKET: 'td-site-preview'
-    XCHECKS: 'td-site-pr'
+    XCHECKS: 'td-test-pr'
     GITHUB_USERNAME: 'duganth-va'
   parameter-store:
     GITHUB_TOKEN: '/github_token'
@@ -58,5 +58,6 @@ phases:
           links="${links} - [${env}](https://s3-us-gov-west-1.amazonaws.com/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}/index.html) <br>"
         done
       - gh-status.sh -r ${REPO} -c ${COMMIT_HASH} -x ${XCHECKS}
-      - comment="these changes have been deployed to an s3 bucket. a build for each environment is available: <br><br> ${links} <br> due to s3 website hosting limitations in govcloud you need to first navigate to index.html explicitly." aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/
+      - aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/
+      - comment="these changes have been deployed to an s3 bucket. a build for each environment is available: <br><br> ${links} <br> due to s3 website hosting limitations in govcloud you need to first navigate to index.html explicitly."
       - gh pr comment ${BRANCH} --body ${comment}
