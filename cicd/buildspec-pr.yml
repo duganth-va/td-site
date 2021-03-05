@@ -45,7 +45,7 @@ phases:
       # Using a time variable to output at the end to aid where builds may take along time.
       - time="Start - $(date +%r)"
       - |
-        for env in ${ENVIRONMENTS[@]}; do
+        for env in ${ENVIRONMENTS}; do
         cat <<EOF > .env.${env}.local
         PUBLIC_URL=/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}
         EOF
@@ -58,6 +58,6 @@ phases:
           links="${links} - [${env}](https://s3-us-gov-west-1.amazonaws.com/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}/index.html) <br>"
         done
       - gh-status.sh -r ${REPO} -c ${COMMIT_HASH} -x ${XCHECKS}
-      - aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/
+        #- aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/
       - comment="these changes have been deployed to an s3 bucket. a build for each environment is available: <br><br> ${links} <br> due to s3 website hosting limitations in govcloud you need to first navigate to index.html explicitly."
       - gh pr comment ${BRANCH} --body ${comment}
