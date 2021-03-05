@@ -21,7 +21,7 @@ phases:
   pre_build:
     commands:
       # Get usable branch name
-      - GET_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      - GET_BRANCH=$(git branch --show-current)
       # set branch if not set from Webhook
       - |
         if [[ ${BRANCH} ]]; then
