@@ -2,12 +2,15 @@
 ######################################################################
 version: 0.2
 env:
+  shell: bash
   variables:
+    REPO: "td-site"
     ENVIRONMENTS: 'dev staging production'
     S3_REVIEW_BUCKET: 'td-site-preview'
+    XCHECKS: 'td-site-pr'
+    GITHUB_USERNAME: 'duganth-va'
   parameter-store:
-    # This webhook currently targets DSVA workspace #lighthous-deploys channel
-    #
+    GITHUB_TOKEN: ''
 phases:
   install:
     commands:
@@ -15,14 +18,45 @@ phases:
       # Therefore we use our own Alpine based image. In order to activate the Docker Daemon these lines are needed.
       - /usr/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+  pre_build:
+    commands:
+      # Get usable branch name
+      - GET_BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
+      # set branch if not set from Webhook
+      - |
+        if [[ ${BRANCH} ]]; then
+          echo branch set as -- ${BRANCH} -- from console
+        elif [[ ${GET_BRANCH} ]]; then
+          echo branch set as -- ${GET_BRANCH} -- from webhook
+          BRANCH=${GET_BRANCH}
+        else
+          BRANCH=""
+        fi
+      # Make a url compliant name for S3
+      - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
+      # Short Ref to commit hash
+      - COMMIT_HASH=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
+      # PR VERIFY
+      - pr-verify.sh -r ${REPO}  -b ${BRANCH}
+      # Log all environment varbiables to cloudwatch in case we need to troubleshoot. AWS is nice enough to hide any secrets from parameter-store.
+      - printenv
   build:
     commands:
-      - BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
-      - S3_BRANCH=$(echo ${BRANCH} | sed 's/\//-/g' | tr -dc [:alnum:]-_)
+      # Using a time variable to output at the end to aid where builds may take along time.
+      - time="Start - $(date +%r)"
       - |
-        links=""
         for env in ${ENVIRONMENTS}; do
-          make build DESTINATION=${env} ENVIRONMENT=${env} || exit 1
-          links="${links} - [${env}](https://s3-us-gov-west-1.amazonaws.com/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}/index.html) <br>"
-          aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/
+        cat <<EOF > .env.${env}.local
+        PUBLIC_URL=/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}
+        EOF
         done
+      - links=""
+      - |
+        for env in ${ENVIRONMENTS}; do
+          time="${time}\n${phase}-${env} - $(date +%r) - started"
+          make build ENVIRONMENT=${env} || exit 1
+          links="${links} - [${env}](https://s3-us-gov-west-1.amazonaws.com/${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/${env}/index.html) <br>"
+        done
+      - gh-status.sh -r ${REPO} -c ${COMMIT_HASH} -x ${XCHECKS}
+      - comment="these changes have been deployed to an s3 bucket. a build for each environment is available: <br><br> ${links} <br> due to s3 website hosting limitations in govcloud you need to first navigate to index.html explicitly." aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${S3_BRANCH}/${COMMIT_HASH}/
+      - gh pr comment ${BRANCH} --body ${comment}
