@@ -21,7 +21,7 @@ phases:
   pre_build:
     commands:
       # Get usable branch name
-      - GET_BRANCH=${CODEBUILD_WEBHOOK_HEAD_REF#"refs/heads/"}
+      - GET_BRANCH=$(git rev-parse --abbrev-ref HEAD)
       # set branch if not set from Webhook
       - |
         if [[ ${BRANCH} ]]; then
