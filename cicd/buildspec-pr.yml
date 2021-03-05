@@ -43,6 +43,7 @@ phases:
   build:
     commands:
       # Using a time variable to output at the end to aid where builds may take along time.
+      - gh version
       - time="Start - $(date +%r)"
       - |
         for env in ${ENVIRONMENTS}; do
