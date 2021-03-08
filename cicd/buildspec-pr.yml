@@ -47,6 +47,6 @@ phases:
         done
       - gh-status.sh -r ${REPO} -c ${COMMIT_HASH} -x ${XCHECKS} -o duganth-va
       - aws s3 sync --no-progress --acl public-read src/public/ s3://${S3_REVIEW_BUCKET}/${COMMIT_HASH}/
-      - comment=>
-          "these changes have been deployed to an s3 bucket. a build for each environment is available: <br><br> ${links} <br> due to s3 website hosting limitations in govcloud you need to first navigate to index.html explicitly."
+      - |
+         comment="these changes have been deployed to an s3 bucket. a build for each environment is available: <br><br> ${links} <br> due to s3 website hosting limitations in govcloud you need to first navigate to index.html explicitly."
       - gh pr comment ${PRNUM} --body ${comment:-"${links}"}
