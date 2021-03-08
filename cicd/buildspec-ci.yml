@@ -8,4 +8,3 @@ phases:
     commands:
       - phase=test
       - echo testing
-      - sleep 500s
