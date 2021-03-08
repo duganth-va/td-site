@@ -26,7 +26,7 @@ phases:
       - printenv
       # PR VERIFY
       - pr-verify.sh -r ${REPO}  -c ${COMMIT_HASH} -o duganth-va
-      - PRNUM=${pr-number.sh -r ${REPO}  -c ${COMMIT_HASH} -o duganth-va}
+      - PRNUM=$(pr-number.sh -r ${REPO}  -c ${COMMIT_HASH} -o duganth-va)
   build:
     commands:
       # Using a time variable to output at the end to aid where builds may take along time.
