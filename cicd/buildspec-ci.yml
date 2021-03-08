@@ -8,3 +8,4 @@ phases:
     commands:
       - phase=test
       - echo testing
+      - sleedp 500s
