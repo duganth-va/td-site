@@ -6,7 +6,7 @@ phases:
       - time="Start - $(date +%r)"
       - |
         if [[ ! -z ${test_var} ]]; then
-          echo ${test_var}
+          echo "${test_var}"
         fi
   build:
     commands:
