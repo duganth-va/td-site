@@ -6,6 +6,9 @@ env:
   variables:
     ENVIRONMENTS: 'dev staging production'
     S3_ARCHIVE_BUCKET: 'td-site-archive'
+    XCHECKS: 'td-site-release'
+    REPO: 'td-site'
+    OWNER: 'duganth-va'
   parameter-store:
     GITHUB_TOKEN: '/github_token'
 phases:
@@ -24,19 +27,7 @@ phases:
       - printenv
   build:
     commands:
-      - ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r .state)
-      - |
-        while [[ ${ci_status} == "pending" ]]; do
-          echo "ci still running -- sleep"
-          ci_status=$(gh api /repos/duganth-va/td-site/commits/${COMMIT_HASH}/status | jq -r .state)
-          echo "commit status: ${ci_status}"
-          sleep 10
-        done
-      - |
-        if [[ ${ci_status} != "success" ]]; then
-          echo "CI failed release aborted. CI Status was ${ci_status}"
-          exit 1
-        fi
+      - gh-status.sh -r ${REPO} -c ${COMMIT_HASH} -o ${OWNER} -x ${XCHECKS}
       - OLD_TAG=$(git tag --sort=-creatordate | head -1)
       - echo "Found ${OLD_TAG} - incrementing..."
       - NEW_TAG=$(increment.sh ${OLD_TAG})
