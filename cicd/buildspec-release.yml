@@ -27,7 +27,7 @@ phases:
       - printenv
   build:
     commands:
-      - gh-status.sh -r ${REPO} -c {COMMIT_HASH} -o ${OWNER} -x ${XCHECKS}
+      - gh-status.sh -r ${REPO} -c ${COMMIT_HASH} -o ${OWNER} -x ${XCHECKS}
       - echo "Found ${OLD_TAG} - incrementing..."
       - NEW_TAG=$(increment.sh ${OLD_TAG})
       - echo "Creating ${NEW_TAG} release"
