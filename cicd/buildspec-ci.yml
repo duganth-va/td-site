@@ -3,7 +3,12 @@ phases:
   pre_build:
     commands:
       # using a time variable to output at the end to aid where builds may take along time.
+      - printenv
       - time="Start - $(date +%r)"
+      - |
+        if [[ ! -z ${test_var} ]]; then
+          echo "${test_var}"
+        fi
   build:
     commands:
       - phase=test
