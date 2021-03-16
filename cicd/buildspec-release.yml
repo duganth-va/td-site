@@ -28,6 +28,7 @@ phases:
   build:
     commands:
       - gh-status.sh -r ${REPO} -c ${COMMIT_HASH} -o ${OWNER} -x ${XCHECKS}
+      - OLD_TAG=$(git tag --sort=-creatordate | head -1)
       - echo "Found ${OLD_TAG} - incrementing..."
       - NEW_TAG=$(increment.sh ${OLD_TAG})
       - echo "Creating ${NEW_TAG} release"
