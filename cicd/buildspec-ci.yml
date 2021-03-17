@@ -9,7 +9,9 @@ phases:
         if [[ ! -z ${test_var} ]]; then
           echo "${test_var}"
         fi
+      - export TEST_VAR=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
   build:
     commands:
       - phase=test
       - echo testing
+      - echo $TEST_VAR
