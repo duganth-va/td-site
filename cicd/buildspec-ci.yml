@@ -13,6 +13,7 @@ phases:
     commands:
       - phase=test
       - echo testing
+      - make build DESTINATION=dev ENVIRONMENT=dev
   artifact:
     files:
       - src/public/*
