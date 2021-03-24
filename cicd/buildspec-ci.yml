@@ -1,6 +1,5 @@
 version: 0.2
 phases:
-phases:
   install:
     commands:
       # There is considerable slow down in the provisioning phase when using Amazon provided images.
