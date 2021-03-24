@@ -13,3 +13,7 @@ phases:
     commands:
       - phase=test
       - echo testing
+  artifact:
+  files:
+    - src/public/*
+  discard-paths: yes
