@@ -14,7 +14,7 @@ phases:
       - phase=test
       - echo testing
       - make build DESTINATION=dev ENVIRONMENT=dev
-  artifact:
+  artifacts:
     files:
       - src/public/*
     discard-paths: yes
