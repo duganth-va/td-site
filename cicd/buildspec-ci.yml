@@ -18,7 +18,7 @@ phases:
   build:
     commands:
       - phase=test
-      - echo testing
+      - echo testing123
       - make build DESTINATION=dev ENVIRONMENT=dev
 artifacts:
   files:
