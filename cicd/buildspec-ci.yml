@@ -22,5 +22,5 @@ phases:
       - make build DESTINATION=dev ENVIRONMENT=dev
 artifacts:
   files:
-    - **/*
+    - /*
   discard-paths: yes
